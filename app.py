@@ -35,7 +35,7 @@ for i in range(5):
     seq_tensor = tf.constant(seq_padded, dtype=tf.float32)
 
     # Call the SavedModel using the signature
-    prob_tensor = serve_fn(args_0=seq_tensor)  # name 'args_0' comes from the SavedModel input
+    prob_tensor = serve_fn(args_0=seq_tensor)  
     prob = prob_tensor[list(prob_tensor.keys())[0]].numpy()[0,0]
 
     pred = 'Positive' if prob >= 0.5 else 'Negative'
@@ -61,6 +61,7 @@ if st.button("Predict"):
         st.write(f"Prediction: {pred} (prob={prob:.4f})")
     else:
         st.write("Please enter a review first.")
+
 
 
 
