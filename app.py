@@ -52,12 +52,13 @@ user_input = st.text_area("Enter a movie review here:")
 
 if st.button("Predict"):
     if user_input.strip() != "":
-        encoded_input = encode_review(user_input)
+        encoded_input = encode_review(user_input)   # already returns (1, 200)
         prob = lstm_model.predict(encoded_input)[0,0]
         pred = 'Positive' if prob >= 0.5 else 'Negative'
         st.write(f"Prediction: {pred} (prob={prob:.4f})")
     else:
         st.write("Please enter a review first.")
+
 
 
 
