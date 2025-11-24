@@ -39,7 +39,7 @@ for i in range(5):
     text = decode_review(seq)
 
     # Use .predict() now safely on Keras model
-    prob = lstm_model.predict(np.array([seq]), verbose=0)[0,0]
+    prob = lstm_model(seq_padded, training=False).numpy()[0,0]
     pred = 'Positive' if prob >= 0.5 else 'Negative'
     actual = 'Positive' if ytest[i] == 1 else 'Negative'
 
@@ -56,10 +56,11 @@ user_input = st.text_area("Enter a movie review here:")
 if st.button("Predict"):
     if user_input.strip() != "":
         encoded_input = encode_review(user_input)
-        prob = lstm_model.predict(encoded_input, verbose=0)[0,0]
+        prob = lstm_model(seq_padded, training=False).numpy()[0,0]
         pred = 'Positive' if prob >= 0.5 else 'Negative'
         st.write(f"Prediction: {pred} (prob={prob:.4f})")
     else:
         st.write("Please enter a review first.")
+
 
 
