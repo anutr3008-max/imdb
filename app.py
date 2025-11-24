@@ -1,17 +1,14 @@
 import streamlit as st
 import numpy as np
+import tensorflow as tf
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 from tensorflow.keras.datasets import imdb
 from tensorflow.keras.models import load_model
-import os
 
+# Load SavedModel
+lstm_model = load_model("lstm_imdb_savedmodel", compile=False)
 
-# Load LSTM model safely
-#lstm_model = load_model("lstm_imdb_savedmodel")
-lstm_model = load_model("lstm_imdb.keras", compile=False)
-
-
-# Load IMDB word index and decoder
+# Load word index
 word_index = imdb.get_word_index()
 reverse_word_index = {value+3: key for (key, value) in word_index.items()}
 reverse_word_index[0] = '<PAD>'
@@ -31,24 +28,22 @@ def encode_review(text, maxlen=200):
 st.set_page_config(page_title="IMDB Movie Review Classifier", page_icon="🎬")
 st.title("IMDB Movie Review Classifier by Anu")
 
-# Load IMDB test data
 (_, _), (xtest, ytest) = imdb.load_data(num_words=10000)
 
 st.header("5 Sample Test Reviews")
 for i in range(5):
     seq = xtest[i]
     text = decode_review(seq)
+    seq_padded = tf.constant(pad_sequences([seq], maxlen=200, padding='post'), dtype=tf.float32)
 
-    # Use .predict() now safely on Keras model
-    prob = lstm_model.predict(seq_padded, training=False).numpy()[0,0]
+    # Call the SavedModel directly
+    prob = lstm_model(seq_padded, training=False)
+    # Convert Tensor output to scalar
+    prob = prob.numpy()[0,0]
+
     pred = 'Positive' if prob >= 0.5 else 'Negative'
     actual = 'Positive' if ytest[i] == 1 else 'Negative'
 
-    st.subheader(f"Sample {i+1}")
-    st.write("Actual:", actual)
-    st.write(f"Predicted: {pred} (prob={prob:.4f})")
-    st.write("Review (truncated):", text[:600])
-    st.markdown("---")
 
 # Optional: User input for custom review
 st.header("Try Your Own Review")
@@ -62,6 +57,7 @@ if st.button("Predict"):
         st.write(f"Prediction: {pred} (prob={prob:.4f})")
     else:
         st.write("Please enter a review first.")
+
 
 
 
