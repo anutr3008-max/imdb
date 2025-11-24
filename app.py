@@ -3,11 +3,10 @@ import numpy as np
 import tensorflow as tf
 from tensorflow.keras.datasets import imdb
 from tensorflow.keras.preprocessing.sequence import pad_sequences
-from tensorflow.keras import layers
 
-# --- Load the old SavedModel as an inference-only layer ---
-from tensorflow.keras.layers import TFSMLayer
-lstm_model = TFSMLayer("lstm_imdb_savedmodel", call_endpoint="serving_default")
+# --- Load the old SavedModel ---
+lstm_model = tf.saved_model.load("lstm_imdb_savedmodel")
+serve_fn = lstm_model.signatures["serving_default"]  # default inference function
 
 # --- Load IMDB word index and decoder ---
 word_index = imdb.get_word_index()
@@ -37,11 +36,14 @@ for i in range(5):
     seq = xtest[i]
     text = decode_review(seq)
 
-    # --- Prepare input and predict ---
+    # --- Prepare input for the signature ---
     seq_padded = pad_sequences([seq], maxlen=200, padding='post')
     seq_tensor = tf.constant(seq_padded, dtype=tf.float32)
-    prob_tensor = lstm_model(seq_tensor)
-    prob = prob_tensor.numpy()[0,0]
+
+    # --- Call the SavedModel signature ---
+    input_name = list(serve_fn.structured_input_signature[1].keys())[0]
+    output = serve_fn(**{input_name: seq_tensor})
+    prob = list(output.values())[0].numpy()[0, 0]
 
     pred = 'Positive' if prob >= 0.5 else 'Negative'
     actual = 'Positive' if ytest[i] == 1 else 'Negative'
