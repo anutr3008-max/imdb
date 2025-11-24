@@ -6,7 +6,7 @@ from tensorflow.keras.models import load_model
 
 
 # Load LSTM model
-lstm_model = load_model("lstm_imdb.h5")  
+lstm_model = load_model("lstm_imdb_savedmodel")  
 
 
 # Load IMDB word index and decoder
@@ -46,3 +46,4 @@ for i in range(5):
     st.write(f"Predicted: {pred} (prob={prob:.4f})")
     st.write("Review (truncated):", text[:600])
     st.markdown("---")
+
