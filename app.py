@@ -7,7 +7,8 @@ import os
 
 
 # Load LSTM model safely
-lstm_model = load_model("lstm_imdb_savedmodel")
+#lstm_model = load_model("lstm_imdb_savedmodel")
+lstm_model = load_model("lstm_imdb.keras", compile=False)
 
 
 # Load IMDB word index and decoder
@@ -39,7 +40,7 @@ for i in range(5):
     text = decode_review(seq)
 
     # Use .predict() now safely on Keras model
-    prob = lstm_model(seq_padded, training=False).numpy()[0,0]
+    prob = lstm_model.predict(seq_padded, training=False).numpy()[0,0]
     pred = 'Positive' if prob >= 0.5 else 'Negative'
     actual = 'Positive' if ytest[i] == 1 else 'Negative'
 
@@ -61,6 +62,7 @@ if st.button("Predict"):
         st.write(f"Prediction: {pred} (prob={prob:.4f})")
     else:
         st.write("Please enter a review first.")
+
 
 
 
