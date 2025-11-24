@@ -2,12 +2,11 @@ import streamlit as st
 import numpy as np
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 from tensorflow.keras.datasets import imdb
-from tensorflow.keras.models import load_model
+import tensorflow as tf
 
-
-# Load LSTM model
-lstm_model = load_model("lstm_imdb_savedmodel")  
-
+# Load LSTM SavedModel
+lstm_model = tf.keras.models.load_model("lstm_imdb_savedmodel", compile=False)
+serve_fn = lstm_model.signatures['serving_default']
 
 # Load IMDB word index and decoder
 word_index = imdb.get_word_index()
@@ -25,7 +24,6 @@ def encode_review(text, maxlen=200):
     seq = [word_index[word]+3 for word in words if word in word_index]
     return pad_sequences([seq], maxlen=maxlen, padding='post')
 
-
 # Streamlit UI
 st.set_page_config(page_title="IMDB Movie Review Classifier", page_icon="🎬")
 st.title("IMDB Movie Review Classifier by Anu")
@@ -37,7 +35,20 @@ st.header("5 Sample Test Reviews")
 for i in range(5):
     seq = xtest[i]
     text = decode_review(seq)
-    prob = lstm_model.predict(np.array([seq]), verbose=0)[0,0]
+
+    # Pad and convert to tensor
+    seq_padded = pad_sequences([seq], maxlen=200, padding='post')
+    seq_tensor = tf.constant(seq_padded, dtype=tf.float32)
+
+    # Call the SavedModel serving function
+    # NOTE: check the input name from your model signature
+    input_name = list(serve_fn.structured_input_signature[1].keys())[0]
+    prob_tensor = serve_fn(**{input_name: seq_tensor})
+
+    # Extract probability from output tensor
+    output_name = list(prob_tensor.keys())[0]
+    prob = prob_tensor[output_name].numpy()[0,0]
+
     pred = 'Positive' if prob >= 0.5 else 'Negative'
     actual = 'Positive' if ytest[i] == 1 else 'Negative'
 
@@ -46,4 +57,3 @@ for i in range(5):
     st.write(f"Predicted: {pred} (prob={prob:.4f})")
     st.write("Review (truncated):", text[:600])
     st.markdown("---")
-
