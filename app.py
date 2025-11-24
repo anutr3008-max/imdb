@@ -34,13 +34,8 @@ st.header("5 Sample Test Reviews")
 for i in range(5):
     seq = xtest[i]
     text = decode_review(seq)
-    seq_padded = tf.constant(pad_sequences([seq], maxlen=200, padding='post'), dtype=tf.float32)
-
-    # Call the SavedModel directly
-    prob = lstm_model(seq_padded, training=False)
-    # Convert Tensor output to scalar
-    prob = prob.numpy()[0,0]
-
+    seq_padded = pad_sequences([seq], maxlen=200, padding='post')
+    prob = lstm_model.predict(seq_padded)[0,0]
     pred = 'Positive' if prob >= 0.5 else 'Negative'
     actual = 'Positive' if ytest[i] == 1 else 'Negative'
 
@@ -58,11 +53,12 @@ user_input = st.text_area("Enter a movie review here:")
 if st.button("Predict"):
     if user_input.strip() != "":
         encoded_input = encode_review(user_input)
-        prob = lstm_model(seq_padded, training=False).numpy()[0,0]
+        prob = lstm_model.predict(encoded_input)[0,0]
         pred = 'Positive' if prob >= 0.5 else 'Negative'
         st.write(f"Prediction: {pred} (prob={prob:.4f})")
     else:
         st.write("Please enter a review first.")
+
 
 
 
