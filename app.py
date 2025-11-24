@@ -5,11 +5,8 @@ from tensorflow.keras.preprocessing.sequence import pad_sequences
 from tensorflow.keras.datasets import imdb
 from tensorflow.keras.models import load_model
 
-# Load the SavedModel (TensorFlow format)
+# Load SavedModel
 lstm_model = load_model("lstm_imdb_savedmodel", compile=False)
-
-# Access the 'serve' function signature
-serve_fn = lstm_model.signatures["serving_default"]  # or "serve" if exported differently
 
 # Load word index
 word_index = imdb.get_word_index()
@@ -22,6 +19,11 @@ reverse_word_index[3] = 'the'
 def decode_review(seq):
     return ' '.join([reverse_word_index.get(i, '?') for i in seq if i != 0])
 
+def encode_review(text, maxlen=200):
+    words = text.lower().split()
+    seq = [word_index[word]+3 for word in words if word in word_index]
+    return pad_sequences([seq], maxlen=maxlen, padding='post')
+
 # Streamlit UI
 st.set_page_config(page_title="IMDB Movie Review Classifier", page_icon="🎬")
 st.title("IMDB Movie Review Classifier by Anu")
@@ -31,12 +33,13 @@ st.title("IMDB Movie Review Classifier by Anu")
 st.header("5 Sample Test Reviews")
 for i in range(5):
     seq = xtest[i]
-    seq_padded = pad_sequences([seq], maxlen=500, padding='post')  # must match SavedModel input length
-    seq_tensor = tf.constant(seq_padded, dtype=tf.float32)
+    text = decode_review(seq)
+    seq_padded = tf.constant(pad_sequences([seq], maxlen=200, padding='post'), dtype=tf.float32)
 
-    # Call the SavedModel using the signature
-    prob_tensor = serve_fn(args_0=seq_tensor)  
-    prob = prob_tensor[list(prob_tensor.keys())[0]].numpy()[0,0]
+    # Call the SavedModel directly
+    prob = lstm_model(seq_padded, training=False)
+    # Convert Tensor output to scalar
+    prob = prob.numpy()[0,0]
 
     pred = 'Positive' if prob >= 0.5 else 'Negative'
     actual = 'Positive' if ytest[i] == 1 else 'Negative'
@@ -44,9 +47,8 @@ for i in range(5):
     st.subheader(f"Sample {i+1}")
     st.write("Actual:", actual)
     st.write(f"Predicted: {pred} (prob={prob:.4f})")
-    st.write("Review (truncated):", decode_review(seq)[:600])
+    st.write("Review (truncated):", text[:600])
     st.markdown("---")
-
 
 
 # Optional: User input for custom review
@@ -61,6 +63,7 @@ if st.button("Predict"):
         st.write(f"Prediction: {pred} (prob={prob:.4f})")
     else:
         st.write("Please enter a review first.")
+
 
 
 
