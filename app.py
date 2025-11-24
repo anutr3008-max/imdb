@@ -8,7 +8,7 @@ import os
 
 # Load LSTM model safely
 lstm_model_path = "lstm_imdb.keras"
-lstm_model = load_model(lstm_model_path)
+lstm_model = load_model("lstm_imdb.keras", compile=False)
 
 # Load IMDB word index and decoder
 word_index = imdb.get_word_index()
@@ -61,3 +61,4 @@ if st.button("Predict"):
         st.write(f"Prediction: {pred} (prob={prob:.4f})")
     else:
         st.write("Please enter a review first.")
+
