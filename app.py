@@ -8,14 +8,7 @@ from tensorflow.keras.models import load_model
 
 
 # Load LSTM model
-if "STREAMLIT_SERVER" in os.environ:
-    # On Streamlit Cloud, load SavedModel
-    model_path = "lstm_imdb_savedmodel"
-else:
-    # Local computer, load H5
-    model_path = "lstm_imdb.h5"
-
-lstm_model = load_model(model_path)
+lstm_model = load_model("lstm_imdb_savedmodel")
 
 
 # Load IMDB word index and decoder
@@ -57,4 +50,5 @@ for i in range(5):
     st.write(f"Predicted: {pred} (prob={prob:.4f})")
     st.write("Review (truncated):", text[:600])
     st.markdown("---")
+
 
