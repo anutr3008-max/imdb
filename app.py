@@ -3,15 +3,23 @@ import numpy as np
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 from tensorflow.keras.datasets import imdb
 from tensorflow.keras.models import load_model
+import os
+from tensorflow.keras.models import load_model
 
-# -----------------------------
+
 # Load LSTM model
-# -----------------------------
-lstm_model = load_model("lstm_imdb.h5")  # path to your trained LSTM model
+if "STREAMLIT_SERVER" in os.environ:
+    # On Streamlit Cloud, load SavedModel
+    model_path = "lstm_imdb_savedmodel"
+else:
+    # Local computer, load H5
+    model_path = "lstm_imdb.h5"
 
-# -----------------------------
+lstm_model = load_model(model_path)
+
+
 # Load IMDB word index and decoder
-# -----------------------------
+
 word_index = imdb.get_word_index()
 reverse_word_index = {value+3: key for (key, value) in word_index.items()}
 reverse_word_index[0] = '<PAD>'
@@ -28,9 +36,8 @@ def encode_review(text, maxlen=200):
     return pad_sequences([seq], maxlen=maxlen, padding='post')
 
 
-# -----------------------------
 # Streamlit UI
-# -----------------------------
+
 st.set_page_config(page_title="IMDB Movie Review Classifier", page_icon="🎬")
 st.title("IMDB Movie Review Classifier by Anu")
 
@@ -50,3 +57,4 @@ for i in range(5):
     st.write(f"Predicted: {pred} (prob={prob:.4f})")
     st.write("Review (truncated):", text[:600])
     st.markdown("---")
+
