@@ -11,8 +11,6 @@ import os
 st.set_page_config(page_title="IMDB Movie Review Classifier", page_icon="🎬")
 st.title("IMDB Movie Review Classifier by Anu")
 
-# Show TensorFlow version
-st.write("TensorFlow version:", tf.__version__)
 
 # ---------------------------
 # Load IMDB dataset
@@ -103,3 +101,4 @@ if st.button("Predict Review Sentiment"):
             st.success(f"Predicted: {pred} (prob={prob:.4f})")
         except Exception as e:
             st.error(f"Prediction failed: {e}")
+
