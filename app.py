@@ -15,9 +15,7 @@ st.title("IMDB Movie Review Classifier by Anu")
 
 (_, _), (xtest, ytest) = imdb.load_data(num_words=10000)
 
-# ---------------------------
 # Load IMDB word index
-# ---------------------------
 word_index = imdb.get_word_index()
 reverse_word_index = {value + 3: key for (key, value) in word_index.items()}
 reverse_word_index[0] = '<PAD>'
@@ -98,4 +96,5 @@ if st.button("Predict Review Sentiment"):
             st.success(f"Predicted: {pred} (prob={prob:.4f})")
         except Exception as e:
             st.error(f"Prediction failed: {e}")
+
 
