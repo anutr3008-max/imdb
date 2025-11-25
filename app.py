@@ -33,7 +33,7 @@ def decode_review(seq):
 # Load LSTM SavedModel folder
 # ---------------------------
 #model_path = "lstm_imdb_savedmodel"
-model_path = = tf.keras.models.load_model("lstm_imdb_new.keras")
+model_path = tf.keras.models.load_model("lstm_imdb_new.keras")
 
 
 if not os.path.exists(model_path):
@@ -106,4 +106,5 @@ if st.button("Predict Review Sentiment"):
             st.success(f"Predicted: {pred} (prob={prob:.4f})")
         except Exception as e:
             st.error(f"Prediction failed: {e}")
+
 
