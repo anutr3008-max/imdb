@@ -18,9 +18,9 @@ st.title("IMDB Movie Review Classifier by Anu")
 
 
 # Load IMDB word index
-
+# Decode function 
 word_index = imdb.get_word_index()
-reverse_word_index = {value + 3: key for (key, value) in word_index.items()}
+reverse_word_index = {value+3: key for (key, value) in word_index.items()}
 reverse_word_index[0] = '<PAD>'
 reverse_word_index[1] = '<START>'
 reverse_word_index[2] = '<UNK>'
@@ -65,16 +65,13 @@ for i in range(5):
     actual = 'Positive' if ytest[i] == 1 else 'Negative'
     st.write("Actual:", actual)
 
-    if model_loaded:
-        seq_padded = pad_sequences([seq], maxlen=500, padding='post')
-        input_tensor = tf.constant(seq_padded, dtype=tf.float32)  # <- use float32
-        try:
-            output = infer(input_tensor)
-            prob = float(output[output_key].numpy()[0][0])
-            pred = 'Positive' if prob >= 0.5 else 'Negative'
-            st.write(f"Predicted: {pred} (prob={prob:.4f})")
-        except Exception as e:
-            st.error(f"Prediction failed: {e}")
+    if model_lstm is not None:
+        # Pad sequence to match LSTM input
+        seq_padded = pad_sequences([seq], maxlen=max_len, padding='post')
+        # Make prediction
+        prob = float(model_lstm.predict(seq_padded, verbose=0)[0,0])
+        pred = 'Positive' if prob >= 0.5 else 'Negative'
+        st.write(f"Predicted: {pred} (prob={prob:.4f})")
     else:
         st.write("Predicted: Model not loaded")
 
@@ -103,6 +100,7 @@ if st.button("Predict Review Sentiment"):
             st.success(f"Predicted: {pred} (prob={prob:.4f})")
         except Exception as e:
             st.error(f"Prediction failed: {e}")
+
 
 
 
