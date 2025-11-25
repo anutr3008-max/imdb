@@ -10,7 +10,6 @@ import os
 # ---------------------------
 st.set_page_config(page_title="IMDB Movie Review Classifier", page_icon="🎬")
 st.title("IMDB Movie Review Classifier by Anu")
-st.write("TensorFlow version:", tf.__version__)
 
 # ---------------------------
 # Load IMDB dataset
