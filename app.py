@@ -5,14 +5,15 @@ from tensorflow.keras.datasets import imdb
 import tensorflow as tf
 import os
 
-
+# ---------------------------
 # Streamlit page config
-
+# ---------------------------
 st.set_page_config(page_title="IMDB Movie Review Classifier", page_icon="🎬")
 st.title("IMDB Movie Review Classifier by Anu")
 
+# ---------------------------
 # Load IMDB dataset
-
+# ---------------------------
 (_, _), (xtest, ytest) = imdb.load_data(num_words=10000)
 
 # ---------------------------
@@ -28,30 +29,31 @@ reverse_word_index[3] = 'the'
 def decode_review(seq):
     return ' '.join([reverse_word_index.get(i, '?') for i in seq if i != 0])
 
-
-# Load LSTM SavedModel folder
-model_path = "lstm_imdb_savedmodel"
+# ---------------------------
+# Load LSTM .h5 model
+# ---------------------------
+model_path = "lstm_imdb_new.h5"
 
 if not os.path.exists(model_path):
-    st.error(f"SavedModel folder not found at {model_path}. Please check the path.")
+    st.error(f"Model file not found at {model_path}. Please check the path.")
     lstm_model = None
     model_loaded = False
 else:
     try:
-        lstm_model = tf.saved_model.load(model_path)
-        # Get the serving signature
-        infer = lstm_model.signatures["serving_default"]
-        # Check output keys
-        output_key = list(infer.structured_outputs.keys())[0]  # usually 'dense' or 'output_0'
+        lstm_model = tf.keras.models.load_model(model_path)
         model_loaded = True
-        st.success(f"Loaded SavedModel from {model_path} (output key: {output_key})")
+        st.success(f"Loaded model from {model_path}")
     except Exception as e:
         st.error(f"Could not load model:\n{e}")
         lstm_model = None
         model_loaded = False
 
+# ---------------------------
 # Display 5 sample test reviews
+# ---------------------------
 st.header("5 Sample Test Reviews")
+max_len = 500  # match your trained model
+
 for i in range(5):
     seq = xtest[i]
     text = decode_review(seq)
@@ -63,21 +65,20 @@ for i in range(5):
     st.write("Actual:", actual)
 
     if model_loaded:
-        seq_padded = pad_sequences([seq], maxlen=500, padding='post')
-        input_tensor = tf.constant(seq_padded, dtype=tf.float32)  # <- use float32
-        try:
-            output = infer(input_tensor)
-            prob = float(output[output_key].numpy()[0][0])
-            pred = 'Positive' if prob >= 0.5 else 'Negative'
-            st.write(f"Predicted: {pred} (prob={prob:.4f})")
-        except Exception as e:
-            st.error(f"Prediction failed: {e}")
+        # Pad sequence
+        seq_padded = pad_sequences([seq], maxlen=max_len, padding='post')
+        # Predict using .h5 model
+        prob = float(lstm_model.predict(seq_padded, verbose=0)[0,0])
+        pred = 'Positive' if prob >= 0.5 else 'Negative'
+        st.write(f"Predicted: {pred} (prob={prob:.4f})")
     else:
         st.write("Predicted: Model not loaded")
 
     st.markdown("---")
 
+# ---------------------------
 # Classify custom review
+# ---------------------------
 st.header("Classify Your Own Review")
 user_input = st.text_area("Type your IMDB review here:")
 
@@ -89,12 +90,12 @@ if st.button("Predict Review Sentiment"):
     else:
         words = user_input.lower().split()
         seq = [word_index.get(word, 2) + 3 for word in words]  # 2=<UNK>
-        seq_padded = pad_sequences([seq], maxlen=500, padding='post')
-        input_tensor = tf.constant(seq_padded, dtype=tf.float32)  # <- float32
+        seq_padded = pad_sequences([seq], maxlen=max_len, padding='post')
         try:
-            output = infer(input_tensor)
-            prob = float(output[output_key].numpy()[0][0])
+            prob = float(lstm_model.predict(seq_padded, verbose=0)[0,0])
             pred = "Positive" if prob >= 0.5 else "Negative"
             st.success(f"Predicted: {pred} (prob={prob:.4f})")
         except Exception as e:
             st.error(f"Prediction failed: {e}")
+
+
