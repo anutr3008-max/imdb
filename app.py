@@ -44,7 +44,7 @@ else:
         # Check output keys
         output_key = list(infer.structured_outputs.keys())[0]  # usually 'dense' or 'output_0'
         model_loaded = True
-        st.success(f"Loaded SavedModel from {model_path} (output key: {output_key})")
+        #st.success(f"Loaded SavedModel from {model_path} (output key: {output_key})")
     except Exception as e:
         st.error(f"Could not load model:\n{e}")
         lstm_model = None
@@ -98,3 +98,4 @@ if st.button("Predict Review Sentiment"):
             st.success(f"Predicted: {pred} (prob={prob:.4f})")
         except Exception as e:
             st.error(f"Prediction failed: {e}")
+
