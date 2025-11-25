@@ -10,7 +10,7 @@ This is a Streamlit app for classifying IMDB movie reviews using trained LSTM an
 - `lstm_imdb.h5` – LSTM model
 - `rnn_imdb.h5` – Simple RNN model
 - `imdb_word_index.json` – Tokenizer word index
-- `requirements.rtf` – Package list
+- `requirements.txt` – Package list
 - Jupyter notebooks for training & testing
 
 ## 🚀 Features
