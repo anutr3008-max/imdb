@@ -5,15 +5,14 @@ from tensorflow.keras.datasets import imdb
 import tensorflow as tf
 import os
 
-# ---------------------------
+
 # Streamlit page config
-# ---------------------------
+
 st.set_page_config(page_title="IMDB Movie Review Classifier", page_icon="🎬")
 st.title("IMDB Movie Review Classifier by Anu")
 
-# ---------------------------
 # Load IMDB dataset
-# ---------------------------
+
 (_, _), (xtest, ytest) = imdb.load_data(num_words=10000)
 
 # ---------------------------
@@ -29,9 +28,8 @@ reverse_word_index[3] = 'the'
 def decode_review(seq):
     return ' '.join([reverse_word_index.get(i, '?') for i in seq if i != 0])
 
-# ---------------------------
-# Load LSTM SavedModel
-# ---------------------------
+
+# Load LSTM SavedModel folder
 model_path = "lstm_imdb_savedmodel"
 
 if not os.path.exists(model_path):
@@ -41,9 +39,10 @@ if not os.path.exists(model_path):
 else:
     try:
         lstm_model = tf.saved_model.load(model_path)
-        # Use serving_default signature
+        # Get the serving signature
         infer = lstm_model.signatures["serving_default"]
-        output_key = list(infer.structured_outputs.keys())[0]  # e.g., "dense" or "output_0"
+        # Check output keys
+        output_key = list(infer.structured_outputs.keys())[0]  # usually 'dense' or 'output_0'
         model_loaded = True
         st.success(f"Loaded SavedModel from {model_path} (output key: {output_key})")
     except Exception as e:
@@ -51,12 +50,8 @@ else:
         lstm_model = None
         model_loaded = False
 
-# ---------------------------
 # Display 5 sample test reviews
-# ---------------------------
 st.header("5 Sample Test Reviews")
-max_len = 500  # match the model input length
-
 for i in range(5):
     seq = xtest[i]
     text = decode_review(seq)
@@ -68,8 +63,8 @@ for i in range(5):
     st.write("Actual:", actual)
 
     if model_loaded:
-        seq_padded = pad_sequences([seq], maxlen=max_len, padding='post')
-        input_tensor = tf.constant(seq_padded, dtype=tf.float32)
+        seq_padded = pad_sequences([seq], maxlen=500, padding='post')
+        input_tensor = tf.constant(seq_padded, dtype=tf.float32)  # <- use float32
         try:
             output = infer(input_tensor)
             prob = float(output[output_key].numpy()[0][0])
@@ -82,9 +77,7 @@ for i in range(5):
 
     st.markdown("---")
 
-# ---------------------------
 # Classify custom review
-# ---------------------------
 st.header("Classify Your Own Review")
 user_input = st.text_area("Type your IMDB review here:")
 
@@ -95,9 +88,9 @@ if st.button("Predict Review Sentiment"):
         st.error("LSTM model not loaded.")
     else:
         words = user_input.lower().split()
-        seq = [word_index.get(word, 2) + 3 for word in words]  # 2 = <UNK>
-        seq_padded = pad_sequences([seq], maxlen=max_len, padding='post')
-        input_tensor = tf.constant(seq_padded, dtype=tf.float32)
+        seq = [word_index.get(word, 2) + 3 for word in words]  # 2=<UNK>
+        seq_padded = pad_sequences([seq], maxlen=500, padding='post')
+        input_tensor = tf.constant(seq_padded, dtype=tf.float32)  # <- float32
         try:
             output = infer(input_tensor)
             prob = float(output[output_key].numpy()[0][0])
