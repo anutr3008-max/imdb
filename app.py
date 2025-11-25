@@ -34,7 +34,7 @@ def decode_review(seq):
 # ---------------------------
 # Load LSTM model
 # ---------------------------
-model_path = "lstm_imdb_new.h5"
+model_path = "lstm_imdb_savedmodel"
 
 if not os.path.exists(model_path):
     st.error(f"Model file not found at {model_path}. Please check the path.")
@@ -101,4 +101,5 @@ if st.button("Predict Review Sentiment"):
             st.success(f"Predicted: {pred} (prob={prob:.4f})")
         except Exception as e:
             st.error(f"Prediction failed: {e}")
+
 
