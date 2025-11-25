@@ -30,6 +30,7 @@ reverse_word_index[2] = '<UNK>'
 reverse_word_index[3] = 'the'
 
 def decode_review(seq):
+    """Convert sequence of integers back to words"""
     return ' '.join([reverse_word_index.get(i, '?') for i in seq if i != 0])
 
 # ---------------------------
@@ -66,7 +67,7 @@ for i in range(5):
     st.write("Actual:", actual)
 
     if model_loaded:
-        seq_padded = pad_sequences([seq], maxlen=500, padding='post')  # match new model
+        seq_padded = pad_sequences([seq], maxlen=500, padding='post')
         seq_tensor = tf.convert_to_tensor(seq_padded)
         try:
             prob = float(lstm_model.predict(seq_tensor, verbose=0)[0][0])
@@ -80,7 +81,7 @@ for i in range(5):
     st.markdown("---")
 
 # ---------------------------
-# Optional: Add custom review input
+# Optional: Classify custom review
 # ---------------------------
 st.header("Classify Your Own Review")
 user_input = st.text_area("Type your IMDB review here:")
@@ -91,9 +92,9 @@ if st.button("Predict Review Sentiment"):
     elif not model_loaded:
         st.error("LSTM model not loaded.")
     else:
-        # Encode review
+        # Encode review using IMDB word index
         words = user_input.lower().split()
-        seq = [word_index.get(word, 2) + 3 for word in words]  # 2=<UNK>
+        seq = [word_index.get(word, 2) for word in words]  # 2 = <UNK>
         seq_padded = pad_sequences([seq], maxlen=500, padding='post')
         seq_tensor = tf.convert_to_tensor(seq_padded)
         try:
