@@ -5,7 +5,7 @@ from tensorflow.keras.datasets import imdb
 import tensorflow as tf
 
 # Load model in KERAS format
-lstm_model = tf.keras.models.load_model("lstm_imdb.keras")
+lstm_model = tf.keras.models.load_model("lstm_imdb.h5")
 
 # Load IMDB word index
 word_index = imdb.get_word_index()
@@ -47,3 +47,4 @@ for i in range(5):
     st.write(f"Predicted: {pred} (prob={prob:.4f})")
     st.write("Review (truncated):", text[:600])
     st.markdown("---")
+
