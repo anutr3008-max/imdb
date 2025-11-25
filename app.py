@@ -65,17 +65,23 @@ for i in range(5):
     actual = 'Positive' if ytest[i] == 1 else 'Negative'
     st.write("Actual:", actual)
 
-    if model_lstm is not None:
+    if model_loaded:
         # Pad sequence to match LSTM input
-        seq_padded = pad_sequences([seq], maxlen=max_len, padding='post')
-        # Make prediction
-        prob = float(model_lstm.predict(seq_padded, verbose=0)[0,0])
-        pred = 'Positive' if prob >= 0.5 else 'Negative'
-        st.write(f"Predicted: {pred} (prob={prob:.4f})")
+        seq_padded = pad_sequences([seq], maxlen=500, padding='post')
+        # Convert to float32 tensor for SavedModel
+        input_tensor = tf.constant(seq_padded, dtype=tf.float32)
+        try:
+            output = infer(input_tensor)
+            prob = float(output[output_key].numpy()[0][0])
+            pred = 'Positive' if prob >= 0.5 else 'Negative'
+            st.write(f"Predicted: {pred} (prob={prob:.4f})")
+        except Exception as e:
+            st.error(f"Prediction failed: {e}")
     else:
         st.write("Predicted: Model not loaded")
 
     st.markdown("---")
+
 
 
 # Classify custom review
@@ -100,6 +106,7 @@ if st.button("Predict Review Sentiment"):
             st.success(f"Predicted: {pred} (prob={prob:.4f})")
         except Exception as e:
             st.error(f"Prediction failed: {e}")
+
 
 
 
