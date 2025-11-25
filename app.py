@@ -5,16 +5,14 @@ from tensorflow.keras.datasets import imdb
 import tensorflow as tf
 import os
 
-# ---------------------------
+
 # Streamlit page config
-# ---------------------------
+
 st.set_page_config(page_title="IMDB Movie Review Classifier", page_icon="🎬")
 st.title("IMDB Movie Review Classifier by Anu")
-st.write("TensorFlow version:", tf.__version__)
 
-# ---------------------------
 # Load IMDB dataset
-# ---------------------------
+
 (_, _), (xtest, ytest) = imdb.load_data(num_words=10000)
 
 # ---------------------------
@@ -30,9 +28,8 @@ reverse_word_index[3] = 'the'
 def decode_review(seq):
     return ' '.join([reverse_word_index.get(i, '?') for i in seq if i != 0])
 
-# ---------------------------
+
 # Load LSTM SavedModel folder
-# ---------------------------
 model_path = "lstm_imdb_savedmodel"
 
 if not os.path.exists(model_path):
@@ -53,9 +50,7 @@ else:
         lstm_model = None
         model_loaded = False
 
-# ---------------------------
 # Display 5 sample test reviews
-# ---------------------------
 st.header("5 Sample Test Reviews")
 for i in range(5):
     seq = xtest[i]
@@ -69,7 +64,7 @@ for i in range(5):
 
     if model_loaded:
         seq_padded = pad_sequences([seq], maxlen=500, padding='post')
-        input_tensor = tf.constant(seq_padded, dtype=tf.int32)
+        input_tensor = tf.constant(seq_padded, dtype=tf.float32)  # <- use float32
         try:
             output = infer(input_tensor)
             prob = float(output[output_key].numpy()[0][0])
@@ -82,9 +77,7 @@ for i in range(5):
 
     st.markdown("---")
 
-# ---------------------------
 # Classify custom review
-# ---------------------------
 st.header("Classify Your Own Review")
 user_input = st.text_area("Type your IMDB review here:")
 
@@ -97,7 +90,7 @@ if st.button("Predict Review Sentiment"):
         words = user_input.lower().split()
         seq = [word_index.get(word, 2) + 3 for word in words]  # 2=<UNK>
         seq_padded = pad_sequences([seq], maxlen=500, padding='post')
-        input_tensor = tf.constant(seq_padded, dtype=tf.int32)
+        input_tensor = tf.constant(seq_padded, dtype=tf.float32)  # <- float32
         try:
             output = infer(input_tensor)
             prob = float(output[output_key].numpy()[0][0])
